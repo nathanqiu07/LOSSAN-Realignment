@@ -21,6 +21,7 @@ from utils.railway_curve import add_complete_railway_curve_to_map, add_complete_
 from utils.railway_alignment import RailwayAlignment, TangentSegment, CurveSegment
 from utils.portal import Portal
 from opencage.geocoder import OpenCageGeocode
+from utils.chatbot import ask as ask_chatbot
 
 try:
     from shapely.geometry import LineString, Point
@@ -234,6 +235,22 @@ with main_content:
         st.write("These markers represent boring locations used for geological surveys along the proposed railway alignments.")
         st.write("The 'R-' prefix indicates regular borings, while 'RC-' indicates rock core samples.")
         st.write("You can toggle between 2024 and 2025 boring locations using the radio buttons above.")
+
+    st.sidebar.subheader("Ask the Map")
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    for msg in st.session_state.chat_history:
+        with st.sidebar.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    if question := st.sidebar.chat_input("Ask a question about the realignment"):
+        st.session_state.chat_history.append({"role": "user", "content": question})
+        with st.sidebar.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                answer = ask_chatbot(question)
+            st.markdown(answer)
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
     # Initialize session state for location if not present
     if "location" not in st.session_state:

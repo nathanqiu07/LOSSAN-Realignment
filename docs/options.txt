@@ -1,0 +1,3 @@
+Option 1 (Tunnel Alignment): Minimizes disruption but has high construction cost and long tunneling segments.
+Option 2 (Surface Alignment): Follows existing tracks along the coast, exposing infrastructure to erosion and sea-level rise.
+Option 3 (Inland Alignment): Moves tracks eastward, reducing coastal risk but requiring new bridges and potential wetland impacts.
