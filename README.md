@@ -20,3 +20,5 @@ To run this application locally:
 pip install -r requirements.txt
 streamlit run app.py
 ```
+The "Ask the Map" chat requires an OpenAI API key and installs
+additional packages (`langchain`, `langchain-openai`, `langchain-community`).

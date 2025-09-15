@@ -1,16 +1,29 @@
 import os
 import streamlit as st
 
-try:  # LangChain is optional at runtime
+# LangChain underwent major package restructuring after version 0.1.
+# Try imports for the newer packages first, then fall back to the
+# legacy paths for older versions. If any import fails, the chat
+# feature is disabled gracefully.
+HAVE_LANGCHAIN = False
+try:  # New-style imports (langchain>=0.1)
     from langchain.text_splitter import RecursiveCharacterTextSplitter
-    from langchain.embeddings.openai import OpenAIEmbeddings
-    from langchain.vectorstores import Chroma
-    from langchain.llms import OpenAI
+    from langchain_openai import OpenAIEmbeddings, OpenAI
+    from langchain_community.vectorstores import Chroma
     from langchain.chains import RetrievalQA
-    from langchain.schema import Document
+    from langchain_core.documents import Document
     HAVE_LANGCHAIN = True
-except ModuleNotFoundError:
-    HAVE_LANGCHAIN = False
+except Exception:  # Fall back to pre-0.1 style
+    try:
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        from langchain.embeddings.openai import OpenAIEmbeddings
+        from langchain.vectorstores import Chroma
+        from langchain.llms import OpenAI
+        from langchain.chains import RetrievalQA
+        from langchain.schema import Document
+        HAVE_LANGCHAIN = True
+    except Exception:
+        HAVE_LANGCHAIN = False
 
 DOCS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs")
 
