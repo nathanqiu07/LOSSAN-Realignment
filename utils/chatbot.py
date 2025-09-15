@@ -1,73 +1,70 @@
 import os
+from typing import List, Tuple
+
+import numpy as np
 import streamlit as st
 
-# LangChain underwent major package restructuring after version 0.1.
-# Try imports for the newer packages first, then fall back to the
-# legacy paths for older versions. If any import fails, the chat
-# feature is disabled gracefully.
-HAVE_LANGCHAIN = False
-try:  # New-style imports (langchain>=0.1)
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-    from langchain_openai import OpenAIEmbeddings, OpenAI
-    from langchain_community.vectorstores import Chroma
-    from langchain.chains import RetrievalQA
-    from langchain_core.documents import Document
-    HAVE_LANGCHAIN = True
-except Exception:  # Fall back to pre-0.1 style
-    try:
-        from langchain.text_splitter import RecursiveCharacterTextSplitter
-        from langchain.embeddings.openai import OpenAIEmbeddings
-        from langchain.vectorstores import Chroma
-        from langchain.llms import OpenAI
-        from langchain.chains import RetrievalQA
-        from langchain.schema import Document
-        HAVE_LANGCHAIN = True
-    except Exception:
-        HAVE_LANGCHAIN = False
+try:
+    import openai
+    HAVE_CHATBOT = True
+except Exception:  # pragma: no cover - gracefully handle missing dependency
+    openai = None
+    HAVE_CHATBOT = False
 
 DOCS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs")
 
 
-def _load_documents(path: str = DOCS_PATH):
-    """Load text files from the docs directory as LangChain Documents."""
-    documents = []
-    for filename in os.listdir(path):
-        file_path = os.path.join(path, filename)
+def _load_docs(path: str = DOCS_PATH) -> List[Tuple[str, str]]:
+    """Load plain text documents from the docs directory."""
+    docs: List[Tuple[str, str]] = []
+    if not os.path.isdir(path):
+        return docs
+    for name in os.listdir(path):
+        file_path = os.path.join(path, name)
         if os.path.isfile(file_path):
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            documents.append(Document(page_content=content, metadata={"source": filename}))
-    return documents
+            with open(file_path, "r", encoding="utf-8") as fh:
+                docs.append((name, fh.read()))
+    return docs
+
+
+def _embed(text: str) -> np.ndarray:
+    """Create an embedding for the given text using OpenAI."""
+    response = openai.Embedding.create(model="text-embedding-ada-002", input=text)
+    return np.array(response["data"][0]["embedding"], dtype=float)
 
 
 @st.cache_resource(show_spinner=False)
-def get_qa_chain():
-    """Create a RetrievalQA chain backed by a Chroma vector store."""
-    if not HAVE_LANGCHAIN:
-        return None
-
-    docs = _load_documents()
+def _indexed_docs():
+    """Return documents and their embeddings, cached for reuse."""
+    docs = _load_docs()
     if not docs:
-        return None
-
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    splits = splitter.split_documents(docs)
-    embeddings = OpenAIEmbeddings()
-    vectordb = Chroma.from_documents(splits, embeddings)
-    llm = OpenAI(temperature=0)
-    chain = RetrievalQA.from_chain_type(
-        llm=llm, chain_type="stuff", retriever=vectordb.as_retriever()
-    )
-    return chain
+        return [], []
+    embeddings = [_embed(content) for _, content in docs]
+    return docs, embeddings
 
 
 def ask(question: str) -> str:
-    """Return an answer to the user's question using the QA chain."""
-    if not HAVE_LANGCHAIN:
-        return "LangChain is not installed. Please install dependencies to use chat."
+    """Answer a question using local documents and OpenAI completion."""
+    if not HAVE_CHATBOT:
+        return "OpenAI package is not installed. Please install dependencies to use chat."
+    if not os.getenv("OPENAI_API_KEY"):
+        return "OpenAI API key not found. Set OPENAI_API_KEY to enable chat."
 
-    chain = get_qa_chain()
-    if chain is None:
-        return "No documents available for answering questions."
-    result = chain({"query": question})
-    return result["result"]
+    docs, embeddings = _indexed_docs()
+    if not docs:
+        return "No reference documents are available for answering questions."
+
+    query_vec = _embed(question)
+    sims = [float(np.dot(query_vec, emb) / (np.linalg.norm(query_vec) * np.linalg.norm(emb))) for emb in embeddings]
+    best_doc, context = docs[int(np.argmax(sims))]
+
+    prompt = (
+        "Use the following document excerpt to answer the question.\n"
+        f"Document: {best_doc}\n\n{context}\n\nQuestion: {question}"
+    )
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+    )
+    return completion["choices"][0]["message"]["content"]

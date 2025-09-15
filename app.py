@@ -21,7 +21,7 @@ from utils.railway_curve import add_complete_railway_curve_to_map, add_complete_
 from utils.railway_alignment import RailwayAlignment, TangentSegment, CurveSegment
 from utils.portal import Portal
 from opencage.geocoder import OpenCageGeocode
-from utils.chatbot import ask as ask_chatbot, HAVE_LANGCHAIN
+from utils.chatbot import ask as ask_chatbot, HAVE_CHATBOT
 
 try:
     from shapely.geometry import LineString, Point
@@ -244,8 +244,8 @@ with main_content:
         with st.sidebar.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    if not HAVE_LANGCHAIN:
-        st.sidebar.warning("LangChain dependencies are missing; chat is unavailable.")
+    if not HAVE_CHATBOT:
+        st.sidebar.warning("Chat dependencies are missing; install the 'openai' package to enable questions.")
     elif question := st.sidebar.chat_input("Ask a question about the realignment"):
         st.session_state.chat_history.append({"role": "user", "content": question})
         with st.sidebar.chat_message("assistant"):

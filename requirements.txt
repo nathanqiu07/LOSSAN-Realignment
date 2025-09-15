@@ -5,9 +5,5 @@ geopy==2.4.1
 shapely==2.1.1
 geopandas==0.14.3
 opencage==3.2.0
-langchain>=0.0.352,<0.3
-langchain-openai>=0.0.8
-langchain-community>=0.0.8
 openai>=0.27,<1
-chromadb==0.5.3
 tiktoken==0.7.0
