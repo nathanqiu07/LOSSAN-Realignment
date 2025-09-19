@@ -5,3 +5,5 @@ geopy==2.4.1
 shapely==2.1.1
 geopandas==0.14.3
 opencage==3.2.0
+openai>=0.27,<1
+tiktoken==0.7.0
