@@ -1,11 +1,13 @@
 # LOSSAN Rail Realignment Explorer
 
-Interactive web application to explore different rail realignment options for the LOSSAN corridor in Del Mar, CA.
+Interactive webmap application to explore different rail realignment options for the Los Angeles-San Diego (LOSSAN) railway corridor in Del Mar, CA.
 
 ## Features
 - View four different proposed rail alignment options
+- View one additional alternative proposed rail alignment by the Coalition of Safer Trains that does not displace any homes in Del Mar
 - Search for addresses to see proximity to alignments
 - Calculate distances from any location to each alignment option
+- Displays prominent rail features such as portals and geological boring hole locations
 
 ## How to Use
 1. Visit the deployed application
