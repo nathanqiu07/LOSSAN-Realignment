@@ -9,6 +9,9 @@ venv/
 ENV/
 .streamlit/
 
+# Archived Python prototypes
+unused-python/
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -17,4 +20,4 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
-*.swo 
+*.swo
