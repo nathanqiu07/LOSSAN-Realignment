@@ -1,6 +1,6 @@
 # LOSSAN Rail Realignment Explorer
 
-Interactive Streamlit/Folium map for comparing five proposed LOSSAN rail realignments in Del Mar, with engineering visualizations, address-distance analysis, boring locations, and document-grounded AI Q&A.
+Interactive Streamlit/Folium map for comparing five proposed LOSSAN rail realignments in Del Mar, with engineering visualizations, address-distance analysis, and geotechnical boring locations.
 
 ## Features
 - View five proposed rail alignment options
